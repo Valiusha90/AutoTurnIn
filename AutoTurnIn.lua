@@ -6,7 +6,7 @@ local QUESTS = {
     ["Mass Harmonization"]     = "MassHarm",
     ["Shard Harmonization"]    = "ShardHarm",
     ["Corrupted Sand"]    = "CorruptedSand",
-    ["Sand in Bulk"]    = "SandInBulk",
+    ["Sand in Bulk"]    = "SandInBulk"
 }
 
 -- Saved variable declared in .toc
@@ -48,7 +48,7 @@ end
 
 local ui = CreateFrame("Frame", "AutoTurnInFrame", UIParent)
 ui:SetWidth(220)
-ui:SetHeight(110)
+ui:SetHeight(160)
 ui:SetPoint("CENTER", UIParent, "CENTER", 0, 0)
 ui:SetBackdrop({
     bgFile   = "Interface\\DialogFrame\\UI-DialogBox-Background",
@@ -123,7 +123,7 @@ do
 end
 
 -- /autoshard to open config
-SLASH_AUTOSHARD1 = "/autoturnin"
+SLASH_AUTOTURNIN1 = "/autoturnin"
 SlashCmdList["AUTOTURNIN"] = function()
     if ui:IsShown() then
         ui:Hide()
