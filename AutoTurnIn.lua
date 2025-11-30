@@ -1,4 +1,4 @@
--- Auto TurnIn Shards - Turtle / Vanilla
+-- Auto TurnIn - Turtle / Vanilla
 
 -- Built-in quest names (exactly as shown in game, in your language)
 local QUESTS = {
@@ -129,7 +129,7 @@ ui:Hide()
 
 local title = ui:CreateFontString(nil, "OVERLAY", "GameFontNormal")
 title:SetPoint("TOP", 0, -8)
-title:SetText("Auto Shard Turn-in")
+title:SetText("Auto Turn-in")
 
 -- Resize grip in bottom-right
 local resizeBtn = CreateFrame("Button", "AutoTurnInResize", ui)
@@ -475,11 +475,11 @@ f:SetScript("OnEvent", function()
         -- build custom rows from DB
         RebuildCustomRowsFromDB()
 
-        DEFAULT_CHAT_FRAME:AddMessage("|cff00ff00AutoTurnIn loaded.|r Type |cffffff00/autoshard|r.")
+        DEFAULT_CHAT_FRAME:AddMessage("|cff00ff00AutoTurnIn loaded.|r Type |cffffff00/ati|r.")
 
     elseif event == "GOSSIP_SHOW" then
         ------------------------------------------------
-        -- Gossip questgivers: auto-select shard quests
+        -- Gossip questgivers: auto-select quests
         ------------------------------------------------
 
         -- AVAILABLE quests
