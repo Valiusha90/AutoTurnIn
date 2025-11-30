@@ -437,6 +437,15 @@ SlashCmdList["AUTOTURNIN"] = function()
     end
 end
 
+SLASH_AUTOTURNIN2 = "/ati"
+SlashCmdList["AUTOTURNIN"] = function()
+    if ui:IsShown() then
+        ui:Hide()
+    else
+        ui:Show()
+    end
+end
+
 --------------------------------------------------------
 -- Core auto-turn-in logic (Vanilla style)
 --------------------------------------------------------
