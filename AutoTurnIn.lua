@@ -48,6 +48,19 @@ local function EnsureDB()
             end
         end
     end
+
+    -- Debug flag: 0 = off, 1 = on
+    if AutoTurnInDB.debug == nil then
+        AutoTurnInDB.debug = 0
+    end
+end
+
+-- Simple debug print
+local function DebugPrint(msg)
+    if not AutoTurnInDB or AutoTurnInDB.debug ~= 1 then
+        return
+    end
+    DEFAULT_CHAT_FRAME:AddMessage("|cff88ff88[ATI DEBUG]|r " .. tostring(msg))
 end
 
 -- Return true if questTitle is currently the one selected quest
@@ -446,6 +459,18 @@ SlashCmdList["AUTOTURNIN"] = function()
     end
 end
 
+SLASH_AUTOTURNINDEBUG1 = "/atidebug"
+SlashCmdList["AUTOTURNINDEBUG"] = function()
+    if not AutoTurnInDB then AutoTurnInDB = {} end
+    if AutoTurnInDB.debug == 1 then
+        AutoTurnInDB.debug = 0
+        DEFAULT_CHAT_FRAME:AddMessage("|cff00ff00AutoTurnIn debug: |cffff5555OFF|r")
+    else
+        AutoTurnInDB.debug = 1
+        DEFAULT_CHAT_FRAME:AddMessage("|cff00ff00AutoTurnIn debug: |cff55ff55ON|r")
+    end
+end
+
 --------------------------------------------------------
 -- Core auto-turn-in logic (Vanilla style)
 --------------------------------------------------------
@@ -482,15 +507,20 @@ f:SetScript("OnEvent", function()
         -- Gossip questgivers: auto-select quests
         ------------------------------------------------
 
+        DebugPrint("---- GOSSIP_SHOW ----")
+
         -- AVAILABLE quests
         local available = { GetGossipAvailableQuests() }
         local totalAvail = table.getn(available)
         local questIndex = 0
 
+        DebugPrint("Available Quests:")
+
         local i
         for i = 1, totalAvail do
             if type(available[i]) == "string" then
                 questIndex = questIndex + 1   -- this is the Nth quest in the list
+                DebugPrint("  ["..questIndex.."] " .. available[i])
                 local qTitle = available[i]
                 if IsQuestHandled(qTitle) then
                     SelectGossipAvailableQuest(questIndex)
@@ -503,10 +533,16 @@ f:SetScript("OnEvent", function()
         local active = { GetGossipActiveQuests() }
         local totalAct = table.getn(active)
         questIndex = 0
-
+        
+        DebugPrint("Active Quests:")
+        
         for i = 1, totalAct do
             if type(active[i]) == "string" then
                 questIndex = questIndex + 1
+
+                DebugPrint("  ["..questIndex.."] " .. active[i])
+
+
                 local aTitle = active[i]
                 if IsQuestHandled(aTitle) then
                     SelectGossipActiveQuest(questIndex)
@@ -519,11 +555,20 @@ f:SetScript("OnEvent", function()
         ------------------------------------------------
         -- Non-gossip questgivers (classic-style)
         ------------------------------------------------
+
+        DebugPrint("---- QUEST_GREETING ----")
+
         local numAvail = GetNumAvailableQuests()
+
+        DebugPrint("Available ("..numAvail.."):")
+
         local i
 
         for i = 1, numAvail do
             local qTitle = GetAvailableTitle(i)
+
+            DebugPrint("  ["..i.."] " .. tostring(qTitle))
+
             if IsQuestHandled(qTitle) then
                 SelectAvailableQuest(i)
                 return
@@ -531,8 +576,14 @@ f:SetScript("OnEvent", function()
         end
 
         local numAct = GetNumActiveQuests()
+        
+        DebugPrint("Active ("..numAct.."):")
+
         for i = 1, numAct do
             local aTitle, isComplete = GetActiveTitle(i)
+
+            DebugPrint("  ["..i.."] " .. tostring(aTitle) .. "  (complete=" .. tostring(isComplete) .. ")")
+
             if isComplete and IsQuestHandled(aTitle) then
                 SelectActiveQuest(i)
                 return
