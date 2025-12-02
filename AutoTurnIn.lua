@@ -5,7 +5,7 @@ local QUESTS = {
     ["Shard De-Harmonization"] = "ShardDeharm",
     ["Mass Harmonization"]     = "MassHarm",
     ["Shard Harmonization"]    = "ShardHarm",
-    ["Sand in Bulk"] = "SandInBulk",
+    ["Sand in Bulk"]           = "SandInBulk",
     ["Corrupted Dream Shards"] = "CorruptedShards"
 }
 
@@ -63,15 +63,53 @@ local function DebugPrint(msg)
     DEFAULT_CHAT_FRAME:AddMessage("|cff88ff88[ATI DEBUG]|r " .. tostring(msg))
 end
 
+-- Normalize quest names for comparison:
+--  - trim spaces
+--  - lowercase
+--  - strip digits (e.g. [60])
+--  - strip punctuation
+--  - collapse multiple spaces
+local function NormalizeName(name)
+    if not name then return "" end
+
+    -- trim
+    name = string.gsub(name, "^%s+", "")
+    name = string.gsub(name, "%s+$", "")
+
+    -- lowercase
+    name = string.lower(name)
+
+    -- remove digits
+    name = string.gsub(name, "%d", "")
+
+    -- remove anything that's not a letter or space
+    name = string.gsub(name, "[^%a%s]", " ")
+
+    -- collapse multiple spaces
+    name = string.gsub(name, "%s+", " ")
+
+    -- trim again
+    name = string.gsub(name, "^%s+", "")
+    name = string.gsub(name, "%s+$", "")
+
+    return name
+end
+
 -- Return true if questTitle is currently the one selected quest
 local function IsQuestHandled(questTitle)
     if not questTitle then return false end
 
-    -- Built-ins
-    local key = QUESTS[questTitle]
-    if key and AutoTurnInDB and AutoTurnInDB.enabled then
-        if AutoTurnInDB.enabled[key] == 1 then
-            return true
+    local normTitle = NormalizeName(questTitle)
+
+    -- Built-ins (check which one is enabled and compare normalized names)
+    if AutoTurnInDB and AutoTurnInDB.enabled then
+        local questName, key
+        for questName, key in pairs(QUESTS) do
+            if AutoTurnInDB.enabled[key] == 1 then
+                if NormalizeName(questName) == normTitle then
+                    return true
+                end
+            end
         end
     end
 
@@ -80,8 +118,10 @@ local function IsQuestHandled(questTitle)
         local i
         for i = 1, table.getn(AutoTurnInDB.custom) do
             local entry = AutoTurnInDB.custom[i]
-            if entry and entry.enabled == 1 and entry.name ~= "" and questTitle == entry.name then
-                return true
+            if entry and entry.enabled == 1 and entry.name ~= "" then
+                if NormalizeName(entry.name) == normTitle then
+                    return true
+                end
             end
         end
     end
@@ -451,13 +491,7 @@ SlashCmdList["AUTOTURNIN"] = function()
 end
 
 SLASH_AUTOTURNIN2 = "/ati"
-SlashCmdList["AUTOTURNIN"] = function()
-    if ui:IsShown() then
-        ui:Hide()
-    else
-        ui:Show()
-    end
-end
+SlashCmdList["AUTOTURNIN"] = SlashCmdList["AUTOTURNIN"]
 
 SLASH_AUTOTURNINDEBUG1 = "/atidebug"
 SlashCmdList["AUTOTURNINDEBUG"] = function()
@@ -539,10 +573,7 @@ f:SetScript("OnEvent", function()
         for i = 1, totalAct do
             if type(active[i]) == "string" then
                 questIndex = questIndex + 1
-
                 DebugPrint("  ["..questIndex.."] " .. active[i])
-
-
                 local aTitle = active[i]
                 if IsQuestHandled(aTitle) then
                     SelectGossipActiveQuest(questIndex)
@@ -559,16 +590,12 @@ f:SetScript("OnEvent", function()
         DebugPrint("---- QUEST_GREETING ----")
 
         local numAvail = GetNumAvailableQuests()
-
         DebugPrint("Available ("..numAvail.."):")
 
         local i
-
         for i = 1, numAvail do
             local qTitle = GetAvailableTitle(i)
-
             DebugPrint("  ["..i.."] " .. tostring(qTitle))
-
             if IsQuestHandled(qTitle) then
                 SelectAvailableQuest(i)
                 return
@@ -576,15 +603,14 @@ f:SetScript("OnEvent", function()
         end
 
         local numAct = GetNumActiveQuests()
-        
         DebugPrint("Active ("..numAct.."):")
 
         for i = 1, numAct do
             local aTitle, isComplete = GetActiveTitle(i)
-
             DebugPrint("  ["..i.."] " .. tostring(aTitle) .. "  (complete=" .. tostring(isComplete) .. ")")
 
-            if isComplete and IsQuestHandled(aTitle) then
+            -- IMPORTANT CHANGE: don't require isComplete here, just select if handled.
+            if IsQuestHandled(aTitle) then
                 SelectActiveQuest(i)
                 return
             end
@@ -609,6 +635,7 @@ f:SetScript("OnEvent", function()
             if numChoices == 0 then
                 GetQuestReward(1)
             else
+                -- If there are choices, this still just picks first.
                 GetQuestReward(1)
             end
         end
