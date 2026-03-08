@@ -3,6 +3,6 @@
 ## Notes: Auto-accept and turn-in for quests with checkboxes.
 ## Author: Valiusha
 ## Version: 1.0
-## SavedVariables: AutoShardTurninDB
+## SavedVariables: AutoTurnInDB
 
 AutoTurnIn.lua
